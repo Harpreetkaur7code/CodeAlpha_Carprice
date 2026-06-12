@@ -1,0 +1,104 @@
+<html>
+<head>
+<title>carprice.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #6aab73;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+carprice.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">pickle</span>
+<span class="s0">from </span><span class="s1">sklearn</span><span class="s2">.</span><span class="s1">model_selection </span><span class="s0">import </span><span class="s1">train_test_split</span>
+<span class="s0">from </span><span class="s1">sklearn</span><span class="s2">.</span><span class="s1">ensemble </span><span class="s0">import </span><span class="s1">RandomForestRegressor</span>
+<span class="s0">from </span><span class="s1">sklearn</span><span class="s2">.</span><span class="s1">metrics </span><span class="s0">import </span><span class="s1">r2_score</span>
+
+<span class="s3"># Load dataset</span>
+<span class="s1">df </span><span class="s2">= </span><span class="s1">pd</span><span class="s2">.</span><span class="s1">read_csv</span><span class="s2">(</span><span class="s4">&quot;car data.csv&quot;</span><span class="s2">)</span>
+
+<span class="s3"># Remove unnecessary column</span>
+<span class="s1">df</span><span class="s2">.</span><span class="s1">drop</span><span class="s2">(</span><span class="s4">&quot;Car_Name&quot;</span><span class="s2">, </span><span class="s1">axis</span><span class="s2">=</span><span class="s5">1</span><span class="s2">, </span><span class="s1">inplace</span><span class="s2">=</span><span class="s0">True</span><span class="s2">)</span>
+
+<span class="s3"># Feature Engineering</span>
+<span class="s1">df</span><span class="s2">[</span><span class="s4">&quot;Current_Year&quot;</span><span class="s2">] = </span><span class="s5">2025</span>
+<span class="s1">df</span><span class="s2">[</span><span class="s4">&quot;No_Years&quot;</span><span class="s2">] = </span><span class="s1">df</span><span class="s2">[</span><span class="s4">&quot;Current_Year&quot;</span><span class="s2">] - </span><span class="s1">df</span><span class="s2">[</span><span class="s4">&quot;Year&quot;</span><span class="s2">]</span>
+<span class="s1">df</span><span class="s2">.</span><span class="s1">drop</span><span class="s2">([</span><span class="s4">&quot;Year&quot;</span><span class="s2">, </span><span class="s4">&quot;Current_Year&quot;</span><span class="s2">], </span><span class="s1">axis</span><span class="s2">=</span><span class="s5">1</span><span class="s2">, </span><span class="s1">inplace</span><span class="s2">=</span><span class="s0">True</span><span class="s2">)</span>
+
+<span class="s3"># Convert categorical variables</span>
+<span class="s1">df </span><span class="s2">= </span><span class="s1">pd</span><span class="s2">.</span><span class="s1">get_dummies</span><span class="s2">(</span><span class="s1">df</span><span class="s2">, </span><span class="s1">drop_first</span><span class="s2">=</span><span class="s0">True</span><span class="s2">)</span>
+
+<span class="s3"># Split features and target</span>
+<span class="s1">X </span><span class="s2">= </span><span class="s1">df</span><span class="s2">.</span><span class="s1">drop</span><span class="s2">(</span><span class="s4">&quot;Selling_Price&quot;</span><span class="s2">, </span><span class="s1">axis</span><span class="s2">=</span><span class="s5">1</span><span class="s2">)</span>
+<span class="s1">y </span><span class="s2">= </span><span class="s1">df</span><span class="s2">[</span><span class="s4">&quot;Selling_Price&quot;</span><span class="s2">]</span>
+
+<span class="s3"># Train-test split</span>
+<span class="s1">X_train</span><span class="s2">, </span><span class="s1">X_test</span><span class="s2">, </span><span class="s1">y_train</span><span class="s2">, </span><span class="s1">y_test </span><span class="s2">= </span><span class="s1">train_test_split</span><span class="s2">(</span>
+    <span class="s1">X</span><span class="s2">, </span><span class="s1">y</span><span class="s2">, </span><span class="s1">test_size</span><span class="s2">=</span><span class="s5">0.2</span><span class="s2">, </span><span class="s1">random_state</span><span class="s2">=</span><span class="s5">42</span>
+<span class="s2">)</span>
+
+<span class="s3"># Random Forest Model</span>
+<span class="s1">model </span><span class="s2">= </span><span class="s1">RandomForestRegressor</span><span class="s2">(</span>
+    <span class="s1">n_estimators</span><span class="s2">=</span><span class="s5">500</span><span class="s2">,</span>
+    <span class="s1">random_state</span><span class="s2">=</span><span class="s5">42</span><span class="s2">,</span>
+    <span class="s1">max_depth</span><span class="s2">=</span><span class="s5">15</span>
+<span class="s2">)</span>
+
+<span class="s1">model</span><span class="s2">.</span><span class="s1">fit</span><span class="s2">(</span><span class="s1">X_train</span><span class="s2">, </span><span class="s1">y_train</span><span class="s2">)</span>
+
+<span class="s3"># Prediction</span>
+<span class="s1">predictions </span><span class="s2">= </span><span class="s1">model</span><span class="s2">.</span><span class="s1">predict</span><span class="s2">(</span><span class="s1">X_test</span><span class="s2">)</span>
+
+<span class="s3"># Accuracy</span>
+<span class="s1">score </span><span class="s2">= </span><span class="s1">r2_score</span><span class="s2">(</span><span class="s1">y_test</span><span class="s2">, </span><span class="s1">predictions</span><span class="s2">)</span>
+<span class="s1">print</span><span class="s2">(</span><span class="s4">f&quot;R2 Score: </span><span class="s0">{</span><span class="s1">score</span><span class="s0">:</span><span class="s4">.4f</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">)</span>
+
+<span class="s3"># Save model</span>
+<span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">&quot;model.pkl&quot;</span><span class="s2">, </span><span class="s4">&quot;wb&quot;</span><span class="s2">) </span><span class="s0">as </span><span class="s1">file</span><span class="s2">:</span>
+    <span class="s1">pickle</span><span class="s2">.</span><span class="s1">dump</span><span class="s2">(</span><span class="s1">model</span><span class="s2">, </span><span class="s1">file</span><span class="s2">)</span>
+
+<span class="s1">print</span><span class="s2">(</span><span class="s4">&quot;Model saved successfully!&quot;</span><span class="s2">)</span>
+<span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">import </span><span class="s1">pickle</span>
+
+<span class="s3"># Load model</span>
+<span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s4">&quot;model.pkl&quot;</span><span class="s2">, </span><span class="s4">&quot;rb&quot;</span><span class="s2">) </span><span class="s0">as </span><span class="s1">file</span><span class="s2">:</span>
+    <span class="s1">model </span><span class="s2">= </span><span class="s1">pickle</span><span class="s2">.</span><span class="s1">load</span><span class="s2">(</span><span class="s1">file</span><span class="s2">)</span>
+
+<span class="s3"># Load feature columns</span>
+    <span class="s1">model_columns </span><span class="s2">= </span><span class="s1">list</span><span class="s2">(</span><span class="s1">X</span><span class="s2">.</span><span class="s1">columns</span><span class="s2">)</span>
+
+<span class="s3"># New car data</span>
+<span class="s1">car </span><span class="s2">= {</span>
+    <span class="s4">&quot;Year&quot;</span><span class="s2">: </span><span class="s5">2018</span><span class="s2">,</span>
+    <span class="s4">&quot;Present_Price&quot;</span><span class="s2">: </span><span class="s5">8.5</span><span class="s2">,</span>
+    <span class="s4">&quot;Kms_Driven&quot;</span><span class="s2">: </span><span class="s5">25000</span><span class="s2">,</span>
+    <span class="s4">&quot;Owner&quot;</span><span class="s2">: </span><span class="s5">0</span><span class="s2">,</span>
+    <span class="s4">&quot;Fuel_Type_Diesel&quot;</span><span class="s2">: </span><span class="s5">0</span><span class="s2">,</span>
+    <span class="s4">&quot;Fuel_Type_Petrol&quot;</span><span class="s2">: </span><span class="s5">1</span><span class="s2">,</span>
+    <span class="s4">&quot;Seller_Type_Individual&quot;</span><span class="s2">: </span><span class="s5">1</span><span class="s2">,</span>
+    <span class="s4">&quot;Transmission_Manual&quot;</span><span class="s2">: </span><span class="s5">1</span>
+<span class="s2">}</span>
+
+<span class="s3"># Convert to DataFrame</span>
+<span class="s1">input_df </span><span class="s2">= </span><span class="s1">pd</span><span class="s2">.</span><span class="s1">DataFrame</span><span class="s2">([</span><span class="s1">car</span><span class="s2">])</span>
+
+<span class="s3"># Ensure column order matches training data</span>
+<span class="s1">input_df </span><span class="s2">= </span><span class="s1">input_df</span><span class="s2">.</span><span class="s1">reindex</span><span class="s2">(</span><span class="s1">columns</span><span class="s2">=</span><span class="s1">model_columns</span><span class="s2">, </span><span class="s1">fill_value</span><span class="s2">=</span><span class="s5">0</span><span class="s2">)</span>
+
+<span class="s3"># Predict</span>
+<span class="s1">predicted_price </span><span class="s2">= </span><span class="s1">model</span><span class="s2">.</span><span class="s1">predict</span><span class="s2">(</span><span class="s1">input_df</span><span class="s2">)</span>
+
+<span class="s1">print</span><span class="s2">(</span><span class="s4">f&quot;Predicted Car Price: ₹ </span><span class="s0">{</span><span class="s1">predicted_price</span><span class="s2">[</span><span class="s5">0</span><span class="s2">]</span><span class="s0">:</span><span class="s4">.2f</span><span class="s0">} </span><span class="s4">Lakhs&quot;</span><span class="s2">)</span></pre>
+</body>
+</html>
